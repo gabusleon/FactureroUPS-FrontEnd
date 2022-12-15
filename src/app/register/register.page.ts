@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular';
+import { UserService } from '../api/user.service';
 
 @Component({
   selector: 'app-register',
@@ -15,7 +18,10 @@ export class RegisterPage implements OnInit {
   });   
 
   constructor(
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private userService: UserService,
+    private toastController: ToastController,
+    private router: Router
     ) { }
 
   ngOnInit() {
@@ -26,9 +32,27 @@ export class RegisterPage implements OnInit {
     if(!this.userRegisterForm.valid){
       return false;
     }else{
-      console.log("Voy a enviar la data a la API");
-      return true;
-    }
+      this.userService.register(this.userRegisterForm.value)
+        .subscribe(
+          (data) => {
+            console.log('Hola', data);    
+            this.mostrarMensaje('El usuario ha sido creado correctamente');
+            this.router.navigate(['/login'])         
+          }, 
+          (error) =>{        
+            console.log('Ocurrio un error', error.error);
+            this.mostrarMensaje(error.error);
+          });      
+        return true;
+    }      
   }
 
+  async mostrarMensaje(mensaje: any) {
+    const toast = await this.toastController.create({
+      position: 'top',
+      message: mensaje,
+      duration: 3000
+    });
+    toast.present();
+  }
 }
